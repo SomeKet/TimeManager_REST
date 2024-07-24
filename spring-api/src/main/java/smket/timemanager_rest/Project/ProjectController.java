@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -15,8 +16,8 @@ import java.util.Optional;
 
 public class ProjectController {
 
-    ProjectService projectService;
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ProjectService projectService;
+    final ObjectMapper objectMapper = new ObjectMapper();
 
     public ProjectController(ProjectService projectService) {
         this.projectService = projectService;
@@ -86,6 +87,14 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());        }
     }
 
+    @GetMapping("/allProjects")
+    public ResponseEntity<?> getProjects(){
+        try{
+            return new ResponseEntity<>(projectService.getAllProjects(), HttpStatus.OK);
+        }catch(ProjectException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
 
 
 

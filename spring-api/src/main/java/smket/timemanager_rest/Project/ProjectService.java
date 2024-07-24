@@ -3,6 +3,8 @@ package smket.timemanager_rest.Project;
 import org.springframework.stereotype.Service;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -106,6 +108,19 @@ public class ProjectService {
         }
     }
 
+    public List<ProjectDto> getAllProjects() throws ProjectException {
+        List<Project> projects = projectRepository.getAllProjects();
+        if(projects == null){
+            throw new ProjectException("Project not found");
+        }else{
+            List<ProjectDto> projectDto = new ArrayList<>();
+            for(Project project : projects){
+                projectDto.add(projectDtoTransform(project));
+            }
+            return projectDto;
+        }
+    }
+
 
     //Private Methodes
     private ProjectDto projectDtoTransform(Project project){
@@ -118,4 +133,5 @@ public class ProjectService {
 
         return transformedProject;
     }
+
 }
