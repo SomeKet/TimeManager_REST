@@ -66,6 +66,7 @@ public class ProjectService {
         Project project = projectRepository.getProjectByName(name);
         if (project != null) {
             project.setPDescription(newDescription);
+            projectRepository.save(project);
             return projectDtoTransform(project);
         } else {
             throw new ProjectException("Project not found");
@@ -111,7 +112,7 @@ public class ProjectService {
     public List<ProjectDto> getAllProjects() throws ProjectException {
         List<Project> projects = projectRepository.getAllProjects();
         if(projects == null){
-            throw new ProjectException("Project not found");
+            throw new ProjectException("No projects found");
         }else{
             List<ProjectDto> projectDto = new ArrayList<>();
             for(Project project : projects){
