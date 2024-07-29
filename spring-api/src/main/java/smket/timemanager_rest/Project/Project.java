@@ -2,6 +2,10 @@ package smket.timemanager_rest.Project;
 
 import jakarta.persistence.*;
 import lombok.*;
+import smket.timemanager_rest.Entry.Entry;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -17,7 +21,6 @@ public class Project {
     private long pId;
 
     @Column
-    @NonNull
     private String pName;
 
     @Column
@@ -31,6 +34,9 @@ public class Project {
 
     @Column
     private long configTimeMillis;
+
+    @OneToMany(mappedBy = "project", cascade= CascadeType.ALL, orphanRemoval = true)
+    List<Entry> entries = new ArrayList<>();
 
 
 }
