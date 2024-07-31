@@ -41,7 +41,7 @@ public class ProjectServiceTest {
     ProjectRepository projectRepository;
     @Mock
     TimeFormatterService timeFormatterService;
-    Project test = new Project("Test");
+    Project test = new Project();
 
     @BeforeEach
     void setUp(){

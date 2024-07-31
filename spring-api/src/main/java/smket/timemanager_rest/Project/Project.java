@@ -21,6 +21,7 @@ public class Project {
     private long pId;
 
     @Column
+    @NonNull
     private String pName;
 
     @Column

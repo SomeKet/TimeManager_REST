@@ -3,17 +3,16 @@ package smket.timemanager_rest.Entry;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import smket.timemanager_rest.Project.Project;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 @Builder
 public class Entry {
 
@@ -22,19 +21,20 @@ public class Entry {
     long eId;
 
     @Column
+    @JsonFormat(pattern="yyyy-MM-dd")
     LocalDate date;
 
     @Column
-    @JsonFormat(pattern="HH:mm")
-    String startTimeString;
+    @JsonFormat(pattern="HH:mm dd-MM-yyyy")
+    LocalDateTime startTime;
+
+    @Column
+    @JsonFormat(pattern="HH:mm dd-MM-yyyy")
+    LocalDateTime endTime;
 
     @Column
     @JsonFormat(pattern="HH:mm")
-    String endTimeString;
-
-    @Column
-    @JsonFormat(pattern="HH:mm")
-    String breakTimeString;
+    String breakTime;
 
     @Column
     @JsonFormat(pattern="HH:mm")
@@ -47,7 +47,7 @@ public class Entry {
     boolean completed;
 
     @ManyToOne
-    @JoinColumn(name ="project_id", nullable = false)
+    @JoinColumn(name ="project_id")
     private Project project;
 
 }

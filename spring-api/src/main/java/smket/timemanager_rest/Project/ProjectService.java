@@ -1,21 +1,26 @@
 package smket.timemanager_rest.Project;
 
 import org.springframework.stereotype.Service;
+import smket.timemanager_rest.Entry.Entry;
+import smket.timemanager_rest.Entry.EntryService;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
 
     ProjectRepository projectRepository;
     TimeFormatterService timeFormatterService;
+    EntryService entryService;
 
-    public ProjectService(ProjectRepository projectRepository, TimeFormatterService timeFormatterService){
+    public ProjectService(ProjectRepository projectRepository, TimeFormatterService timeFormatterService, EntryService entryService){
         this.projectRepository = projectRepository;
         this.timeFormatterService = timeFormatterService;
+        this.entryService = entryService;
     }
 
     public ProjectDto createProject(String name, Optional<String> description) throws ProjectException {
@@ -30,7 +35,7 @@ public class ProjectService {
                     .configTimeMillis(0)
                     .build();
             projectRepository.save(createdProject);
-            return projectDtoTransform(createdProject);
+            return convertProjectToDto(createdProject);
         }else{
             throw new ProjectException("Project already exists");
         }
@@ -55,7 +60,7 @@ public class ProjectService {
         if(project!=null){
             project.setPName(newName);
             projectRepository.save(project);
-            return projectDtoTransform(project);
+            return convertProjectToDto(project);
         }else{
             throw new ProjectException("Project not found");
         }
@@ -67,7 +72,7 @@ public class ProjectService {
         if (project != null) {
             project.setPDescription(newDescription);
             projectRepository.save(project);
-            return projectDtoTransform(project);
+            return convertProjectToDto(project);
         } else {
             throw new ProjectException("Project not found");
         }
@@ -77,7 +82,7 @@ public class ProjectService {
         if(projectRepository.getProjectByName(name)==null){
             throw new ProjectException("Project not found");
         }
-        return projectDtoTransform(projectRepository.getProjectByName(name));
+        return convertProjectToDto(projectRepository.getProjectByName(name));
     }
 
     public ProjectDto addTime(String name, String time) throws ProjectException {
@@ -88,7 +93,7 @@ public class ProjectService {
             project.setTotalTimeMillis(project.getTotalTimeMillis() + millis);
             project.setTotalTimeString(timeFormatterService.millisInString(project.getTotalTimeMillis()));
             projectRepository.save(project);
-            return projectDtoTransform(project);
+            return convertProjectToDto(project);
         }else{
             throw new ProjectException("Project not found");
         }
@@ -103,7 +108,7 @@ public class ProjectService {
             project.setTotalTimeMillis(project.getTotalTimeMillis() - millis);
             project.setTotalTimeString(timeFormatterService.millisInString(project.getTotalTimeMillis()));
             projectRepository.save(project);
-            return projectDtoTransform(project);
+            return convertProjectToDto(project);
         }else{
             throw new ProjectException("Project not found");
         }
@@ -116,7 +121,7 @@ public class ProjectService {
         }else{
             List<ProjectDto> projectDto = new ArrayList<>();
             for(Project project : projects){
-                projectDto.add(projectDtoTransform(project));
+                projectDto.add(convertProjectToDto(project));
             }
             return projectDto;
         }
@@ -124,13 +129,22 @@ public class ProjectService {
 
 
     //Private Methodes
-    private ProjectDto projectDtoTransform(Project project){
+    private ProjectDto convertProjectToDto(Project project){
         ProjectDto transformedProject = new ProjectDto();
         transformedProject.setPId(project.getPId());
         transformedProject.setPName(project.getPName());
         transformedProject.setPDescription(project.getPDescription());
         transformedProject.setTotalTimeString(project.getTotalTimeString());
         transformedProject.setConfigTimeString(timeFormatterService.millisInString(project.getConfigTimeMillis()));
+        List<Entry> entries = project.getEntries();
+        if (entries == null) {
+            entries = new ArrayList<>();
+        }
+
+        transformedProject.setEntries(entries.stream()
+                .map(entry -> entryService.convertEntryToDto(entry))
+                .collect(Collectors.toList()));
+
 
         return transformedProject;
     }

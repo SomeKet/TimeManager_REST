@@ -1,15 +1,18 @@
 package smket.timemanager_rest.Project;
 
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
+import smket.timemanager_rest.Entry.EntryDto;
+
+import java.util.List;
 
 @Data
 public class ProjectDto {
-    long pId;
-    String pName;
-    String pDescription;
-    String totalTimeString;
-    String configTimeString;
+    private long pId;
+    private String pName;
+    private String pDescription;
+    private String totalTimeString;
+    private String configTimeString;
+    private List<EntryDto> entries;
 
     @Override
     public String toString() {

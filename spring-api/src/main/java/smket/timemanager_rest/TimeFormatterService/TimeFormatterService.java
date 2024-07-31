@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class TimeFormatterService {
 
+    final ZoneId zoneId = ZoneId.of("Europe/Berlin");
     /*
         TimeUnit.MILLISECONDS.toMinutes(millis) -
                             TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)))
@@ -25,6 +26,10 @@ public class TimeFormatterService {
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         LocalTime parsedTime = LocalTime.parse(time, timeFormatter);
         return parsedTime.toSecondOfDay() * 1000L;
+    }
+
+    public long convertLocalDateTime(LocalDateTime time){
+        return time.atZone(zoneId).toInstant().toEpochMilli();
     }
 
     public boolean checkTimeChange(long startTime_1, long endTime_1, long startTime_2, long endTime_2) {
