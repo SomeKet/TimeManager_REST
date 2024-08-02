@@ -5,8 +5,9 @@ import smket.timemanager_rest.Project.ProjectException;
 import smket.timemanager_rest.Project.ProjectRepository;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.List;
 
 @Service
 public class EntryService {
@@ -34,12 +35,19 @@ public class EntryService {
         return defaultEntry.getEId();
     }
 
-    public EntryDto setEntry(long eId, long pId,
-                                   EntryValuesDto entryValuesDto
+    public EntryDto moveEntryToProject(long eId, String pName) throws ProjectException {
+        return null;
+    }
+
+    public EntryDto setEntryComplete(long eId, String pName,
+                                     EntryValuesDto entryValuesDto
                                    ) throws EntryException {
 
-        if(entryRepository.getEntryById(eId).getProject().getPId() != pId){
+        if(!entryRepository.getEntryById(eId).getProject().getPName().equals(pName)){
             throw new EntryException("Mismatch between project and entry");
+        }
+        if(!checkIfDateIsFree(entryValuesDto.getDate(), pName)){
+            throw new EntryException("Date already freed");
         }
 
         //Values
@@ -91,9 +99,9 @@ public class EntryService {
                 .build();
     }
 
-    public String deleteEntry(long eId, long pId) throws EntryException {
+    public String deleteEntry(long eId, String pName) throws EntryException {
         Entry deleteEntry = entryRepository.getEntryById(eId);
-        if(deleteEntry.getProject().getPId() != pId){
+        if(!deleteEntry.getProject().getPName().equals(pName)){
             throw new EntryException("Mismatch between project and entry");
         }else{
             entryRepository.delete(deleteEntry);
@@ -102,9 +110,23 @@ public class EntryService {
     }
 
 
+
+
     private boolean entryComplete(Entry entry){
 
         return entry.startTime != null  && entry.endTime != null && entry.getProject() != null && entry.date != null;
+    }
+
+    private boolean checkIfDateIsFree(LocalDate date, String pName){
+        boolean flag = true;
+        List<Entry> entries = projectRepository.getProjectByName(pName).getEntries();
+        for(Entry entry : entries){
+            if(entry.getDate().isEqual(date)){
+                flag = false;
+                break;
+            }
+        }
+        return flag;
     }
 
 }
