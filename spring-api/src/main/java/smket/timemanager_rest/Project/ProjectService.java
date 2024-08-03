@@ -2,6 +2,7 @@ package smket.timemanager_rest.Project;
 
 import org.springframework.stereotype.Service;
 import smket.timemanager_rest.Entry.Entry;
+import smket.timemanager_rest.Entry.EntryDto;
 import smket.timemanager_rest.Entry.EntryService;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
 
@@ -125,6 +126,15 @@ public class ProjectService {
             }
             return projectDto;
         }
+    }
+
+    public List<EntryDto> getAllEntries(String name) throws ProjectException {
+        if(projectRepository.getProjectByName(name)==null){
+            throw new ProjectException("Project not found");
+        }else{
+            return projectRepository.getProjectByName(name).getEntries().stream().map(e -> entryService.convertEntryToDto(e)).toList();
+        }
+
     }
 
 

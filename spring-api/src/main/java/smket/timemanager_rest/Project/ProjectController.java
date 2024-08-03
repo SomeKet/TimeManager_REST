@@ -96,6 +96,15 @@ public class ProjectController {
         }
     }
 
+    @GetMapping("/allProjectEntries/{pName}")
+    ResponseEntity<?> getProjectEntries(@PathVariable("pName") String pName){
+        try{
+            return ResponseEntity.ok(projectService.getAllEntries(pName));
+        }catch (ProjectException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+
 
 
 }

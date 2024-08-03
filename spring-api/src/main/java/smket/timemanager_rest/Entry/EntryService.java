@@ -1,6 +1,7 @@
 package smket.timemanager_rest.Entry;
 
 import org.springframework.stereotype.Service;
+import smket.timemanager_rest.Project.Project;
 import smket.timemanager_rest.Project.ProjectException;
 import smket.timemanager_rest.Project.ProjectRepository;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
@@ -24,19 +25,36 @@ public class EntryService {
         this.timeFormatterService = timeFormatterService;
     }
 
-    public long createEntryDefault(String pName) throws ProjectException {
+    public long createEntryDefault(String pName, LocalDate date) throws ProjectException {
         if(projectRepository.getProjectByName(pName) == null){
             throw new ProjectException("Project with name " + pName + " does not exist");
+        }else if(checkIfDateIsUsed(date, pName)){
+            throw new ProjectException("Date " + date + " already exists");
+        }else{
+            Entry defaultEntry = Entry.builder()
+                    .project(projectRepository.getProjectByName(pName))
+                    .date(date)
+                    .build();
+            entryRepository.save(defaultEntry);
+            return defaultEntry.getEId();
         }
-        Entry defaultEntry = Entry.builder()
-                .project(projectRepository.getProjectByName(pName))
-                .build();
-        entryRepository.save(defaultEntry);
-        return defaultEntry.getEId();
+
     }
 
     public EntryDto moveEntryToProject(long eId, String pName) throws ProjectException {
-        return null;
+        Entry entry = entryRepository.getEntryById(eId);
+        Project project = projectRepository.getProjectByName(pName);
+        if(entry == null || project == null){
+            throw new ProjectException("Fail");
+        }
+        if(checkIfDateIsUsed(entry.getDate(), pName)){
+            throw new ProjectException("Date " + entry.getDate() + " already exists");
+        }
+
+        entry.setProject(project);
+        entryRepository.save(entry);
+        return convertEntryToDto(entry);
+
     }
 
     public EntryDto setEntryComplete(long eId, String pName,
@@ -45,9 +63,6 @@ public class EntryService {
 
         if(!entryRepository.getEntryById(eId).getProject().getPName().equals(pName)){
             throw new EntryException("Mismatch between project and entry");
-        }
-        if(!checkIfDateIsFree(entryValuesDto.getDate(), pName)){
-            throw new EntryException("Date already freed");
         }
 
         //Values
@@ -76,7 +91,6 @@ public class EntryService {
                     - timeFormatterService.stringInMillis(entryBreakTime);
         }
 
-        entry.setDate(entryValuesDto.getDate());
         entry.setTotalTimeMillis(totalTimeInMillis);
         entry.setTotalTimeString(timeFormatterService.millisInString(totalTimeInMillis));
         entry.setCompleted(entryComplete(entry));
@@ -109,6 +123,16 @@ public class EntryService {
         }
     }
 
+    public EntryDto changeDate(long eId, String pName, LocalDate date) throws EntryException {
+        if(checkIfDateIsUsed(date, pName)){
+            throw new EntryException("Date already used");
+        }else{
+            Entry entry = entryRepository.getEntryById(eId);
+            entry.setDate(date);
+            entryRepository.save(entry);
+            return convertEntryToDto(entry);
+        }
+    }
 
 
 
@@ -117,12 +141,12 @@ public class EntryService {
         return entry.startTime != null  && entry.endTime != null && entry.getProject() != null && entry.date != null;
     }
 
-    private boolean checkIfDateIsFree(LocalDate date, String pName){
-        boolean flag = true;
+    private boolean checkIfDateIsUsed(LocalDate date, String pName){
+        boolean flag = false;
         List<Entry> entries = projectRepository.getProjectByName(pName).getEntries();
         for(Entry entry : entries){
             if(entry.getDate().isEqual(date)){
-                flag = false;
+                flag = true;
                 break;
             }
         }

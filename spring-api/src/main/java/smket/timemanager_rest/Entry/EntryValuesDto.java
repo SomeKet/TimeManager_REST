@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class EntryValuesDto {
-    private LocalDate date;
+    //private LocalDate date;
     @JsonFormat(pattern="HH:mm dd-MM-yyyy")
     private LocalDateTime startTime;
     @JsonFormat(pattern="HH:mm dd-MM-yyyy")
