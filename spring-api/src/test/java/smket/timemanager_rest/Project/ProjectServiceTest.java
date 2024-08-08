@@ -10,10 +10,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import smket.timemanager_rest.Entry.Entry;
+import smket.timemanager_rest.Entry.EntryDto;
+import smket.timemanager_rest.Entry.EntryService;
 import smket.timemanager_rest.TimeFormatterService.TimeFormatterService;
 
 import java.util.Arrays;
@@ -26,13 +27,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @Transactional
 @ExtendWith(MockitoExtension.class)
-@AutoConfigureMockMvc
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-@TestPropertySource(properties = {
-        "spring.jpa.defer-database-initialization=true",
-        "spring.jpa.hibernate.ddl.auto=create-drop",
-        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true"
-})
 public class ProjectServiceTest {
 
     @InjectMocks
@@ -41,6 +36,8 @@ public class ProjectServiceTest {
     ProjectRepository projectRepository;
     @Mock
     TimeFormatterService timeFormatterService;
+    @Mock
+    EntryService entryService;
     Project test = new Project();
 
     @BeforeEach
@@ -292,6 +289,7 @@ public class ProjectServiceTest {
         String pname = "Test";
         String deleteTimeString = "01:00";
         long timeMillis = 3600000;
+        test.setPName(pname);
 
         when(projectRepository.getProjectByName(test.getPName())).thenReturn(null);
 
@@ -330,5 +328,33 @@ public class ProjectServiceTest {
         ProjectException failed = Assertions.assertThrows(ProjectException.class,
                 () -> projectService.getAllProjects());
         Assertions.assertEquals("No projects found", failed.getMessage());
+    }
+
+    @Test
+    void getAllProjectEntries_success() throws ProjectException {
+        //Arrange
+        test.setPName("Test");
+        Entry a = new Entry();
+        a.setProject(test);
+        Entry b = new Entry();
+        b.setProject(test);
+        Entry c = new Entry();
+        c.setProject(test);
+        test.setEntries(Arrays.asList(a,b,c));
+
+        when(projectRepository.getProjectByName(test.getPName())).thenReturn(test);
+        when(entryService.convertEntryToDto(a)).thenReturn(new EntryDto());
+        when(entryService.convertEntryToDto(b)).thenReturn(new EntryDto());
+        when(entryService.convertEntryToDto(c)).thenReturn(new EntryDto());
+
+        //Act
+        List<EntryDto> list = projectService.getAllEntries(test.getPName());
+
+        //Assert
+        Assertions.assertNotNull(list);
+        Assertions.assertEquals(test.getEntries().size(), list.size());
+        verify(projectRepository, times(2)).getProjectByName(test.getPName());
+        verify(entryService, times(3)).convertEntryToDto(any(Entry.class));
+
     }
 }
